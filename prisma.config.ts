@@ -10,6 +10,12 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url:
+      process.env["DATABASE_URL"] ??
+      process.env["POSTGRES_PRISMA_URL"] ??
+      process.env["POSTGRES_URL"] ??
+      // Fallback to satisfy Prisma CLI config validation during builds.
+      // Runtime DB access still requires a real connection string.
+      "postgresql://localhost:5432/postgres",
   },
 });
