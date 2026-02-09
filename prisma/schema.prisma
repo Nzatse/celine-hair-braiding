@@ -76,4 +76,8 @@ model Appointment {
   @@index([startAt])
   @@index([serviceId, startAt])
   @@index([status, startAt])
+  // Database-level exclusion constraint (managed via raw SQL migration):
+  // - Appointment_end_after_start: CHECK constraint ensuring endAt > startAt
+  // - Appointment_no_overlap_confirmed: EXCLUDE USING gist preventing overlapping CONFIRMED appointments
+  //   (requires btree_gist extension)
 }
