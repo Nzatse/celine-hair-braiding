@@ -165,6 +165,9 @@ function Dashboard() {
     try {
       const hours: HoursRow[] = [1, 2, 3, 4, 5, 6, 7].map((d) => {
         const row = hourForm[d];
+        if (!row) {
+          throw new Error(`Missing hour form data for day ${d}`);
+        }
         return {
           dayOfWeek: d,
           enabled: !!row.enabled,
@@ -288,20 +291,20 @@ function Dashboard() {
                 <input
                   type="checkbox"
                   checked={hourForm[d]?.enabled ?? false}
-                  onChange={(e) => setHourForm((p) => ({ ...p, [d]: { ...p[d], enabled: e.target.checked } }))}
+                  onChange={(e) => setHourForm((p) => ({ ...p, [d]: { enabled: e.target.checked, start: p[d]?.start ?? "09:00", end: p[d]?.end ?? "18:00" } }))}
                 />
                 Enabled
               </label>
               <input
                 className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm dark:border-white/10 dark:bg-zinc-950"
                 value={hourForm[d]?.start ?? "09:00"}
-                onChange={(e) => setHourForm((p) => ({ ...p, [d]: { ...p[d], start: e.target.value } }))}
+                onChange={(e) => setHourForm((p) => ({ ...p, [d]: { enabled: p[d]?.enabled ?? false, start: e.target.value, end: p[d]?.end ?? "18:00" } }))}
                 placeholder="09:00"
               />
               <input
                 className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm dark:border-white/10 dark:bg-zinc-950"
                 value={hourForm[d]?.end ?? "18:00"}
-                onChange={(e) => setHourForm((p) => ({ ...p, [d]: { ...p[d], end: e.target.value } }))}
+                onChange={(e) => setHourForm((p) => ({ ...p, [d]: { enabled: p[d]?.enabled ?? false, start: p[d]?.start ?? "09:00", end: e.target.value } }))}
                 placeholder="18:00"
               />
             </div>
