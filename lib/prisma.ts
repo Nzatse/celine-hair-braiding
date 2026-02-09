@@ -7,8 +7,13 @@ const globalForPg = globalThis as unknown as { pgPool?: Pool };
 
 function createPrismaClient() {
 	const datasourceUrl = process.env.DATABASE_URL;
+
+	// NOTE: Do not throw during module initialization. Next/Vercel may import API route modules at build
+	// time (e.g. when collecting page data), and missing runtime env vars would fail the build.
+	// If DATABASE_URL is missing, create a plain PrismaClient; DB operations will still fail at runtime
+	// until DATABASE_URL is configured.
 	if (!datasourceUrl) {
-		throw new Error("DATABASE_URL is not set");
+		return new PrismaClient();
 	}
 
 	const pool = globalForPg.pgPool ?? new Pool({ connectionString: datasourceUrl });
