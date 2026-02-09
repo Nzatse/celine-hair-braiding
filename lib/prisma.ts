@@ -7,13 +7,8 @@ const globalForPg = globalThis as unknown as { pgPool?: Pool };
 
 function createPrismaClient() {
 	const datasourceUrl = process.env.DATABASE_URL;
-
-	// NOTE: Do not throw during module initialization. Next/Vercel may import API route modules at build
-	// time (e.g. when collecting page data), and missing runtime env vars would fail the build.
-	// If DATABASE_URL is missing, create a plain PrismaClient; DB operations will still fail at runtime
-	// until DATABASE_URL is configured.
 	if (!datasourceUrl) {
-		return new PrismaClient();
+		throw new Error("DATABASE_URL is not set");
 	}
 
 	const pool = globalForPg.pgPool ?? new Pool({ connectionString: datasourceUrl });
@@ -23,6 +18,22 @@ function createPrismaClient() {
 	return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+let prismaClient: PrismaClient | undefined = globalForPrisma.prisma;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+function getPrismaClient(): PrismaClient {
+	if (prismaClient) return prismaClient;
+
+	// IMPORTANT: Lazy init so `next build` can import route modules (and this file)
+	// without requiring runtime env vars.
+	prismaClient = createPrismaClient();
+	if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaClient;
+	return prismaClient;
+}
+
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+	get(_target, prop) {
+		const client = getPrismaClient();
+		const value = (client as unknown as Record<PropertyKey, unknown>)[prop];
+		return typeof value === "function" ? (value as Function).bind(client) : value;
+	},
+});
