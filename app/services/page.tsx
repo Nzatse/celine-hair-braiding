@@ -25,7 +25,10 @@ export default async function ServicesPage() {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    loadError = process.env.DATABASE_URL ? msg : "Database is not configured (missing DATABASE_URL).";
+    const hasDb = Boolean(
+      process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL,
+    );
+    loadError = hasDb ? msg : "Database is not configured (missing DATABASE_URL).";
   }
 
   return (

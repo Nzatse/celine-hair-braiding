@@ -6,7 +6,10 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 const globalForPg = globalThis as unknown as { pgPool?: Pool };
 
 function createPrismaClient() {
-	const datasourceUrl = process.env.DATABASE_URL;
+	const datasourceUrl =
+		process.env.DATABASE_URL ??
+		process.env.POSTGRES_PRISMA_URL ??
+		process.env.POSTGRES_URL;
 	if (!datasourceUrl) {
 		throw new Error("DATABASE_URL is not set");
 	}

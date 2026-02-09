@@ -18,7 +18,10 @@ export async function GET() {
     return NextResponse.json({ services });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    const safeMessage = process.env.DATABASE_URL
+    const hasDb = Boolean(
+      process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL,
+    );
+    const safeMessage = hasDb
       ? "Failed to load services"
       : "Database is not configured (missing DATABASE_URL).";
     return NextResponse.json({ error: safeMessage, details: msg }, { status: 500 });
