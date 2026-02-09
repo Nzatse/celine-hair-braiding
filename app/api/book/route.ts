@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DateTime } from "luxon";
 import { prisma } from "@/lib/prisma";
 import { SALON_TIMEZONE, SLOT_STEP_MIN } from "@/lib/config";
+import type { Prisma } from "@prisma/client";
 import {
   appointmentToLocalMinuteInterval,
   generateSlots,
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const appt = await prisma.$transaction(async (tx) => {
+    const appt = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const conflict = await tx.appointment.findFirst({
         where: {
           status: "CONFIRMED",

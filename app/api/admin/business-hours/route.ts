@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdminRequest } from "@/lib/adminAuth";
+import type { Prisma } from "@prisma/client";
 
 type HoursRow = {
   dayOfWeek: number; // 1-7
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing hours[]" }, { status: 400 });
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.businessHours.deleteMany({});
     if (hours.length > 0) {
       await tx.businessHours.createMany({ data: hours });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdminRequest } from "@/lib/adminAuth";
+import type { Prisma } from "@prisma/client";
 
 type BreakRow = {
   dayOfWeek: number; // 1-7
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing breaks[]" }, { status: 400 });
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.breakWindow.deleteMany({});
     if (breaks.length > 0) {
       await tx.breakWindow.createMany({ data: breaks });
