@@ -8,11 +8,25 @@ export const metadata = {
 };
 
 export default async function ServicesPage() {
-  const services = await prisma.service.findMany({
-    where: { active: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, durationMin: true, bufferMin: true, priceStartingAtCents: true },
-  });
+  let services: Array<{
+    id: string;
+    name: string;
+    durationMin: number;
+    bufferMin: number;
+    priceStartingAtCents: number | null;
+  }> = [];
+  let loadError: string | null = null;
+
+  try {
+    services = await prisma.service.findMany({
+      where: { active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, durationMin: true, bufferMin: true, priceStartingAtCents: true },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    loadError = process.env.DATABASE_URL ? msg : "Database is not configured (missing DATABASE_URL).";
+  }
 
   return (
     <div className="grid gap-6">
@@ -24,6 +38,13 @@ export default async function ServicesPage() {
       </header>
 
       <div className="grid gap-3">
+        {loadError ? (
+          <div className="rounded-2xl bg-white p-6 text-sm text-zinc-700 shadow-sm ring-1 ring-black/5 dark:bg-zinc-950 dark:text-zinc-300 dark:ring-white/10">
+            <div className="font-medium">Services temporarily unavailable</div>
+            <div className="mt-2 text-zinc-600 dark:text-zinc-400">{loadError}</div>
+          </div>
+        ) : null}
+
         {services.map((s) => (
           <div
             key={s.id}
@@ -41,6 +62,12 @@ export default async function ServicesPage() {
             </div>
           </div>
         ))}
+
+        {!loadError && services.length === 0 ? (
+          <div className="rounded-2xl bg-white p-6 text-sm text-zinc-700 shadow-sm ring-1 ring-black/5 dark:bg-zinc-950 dark:text-zinc-300 dark:ring-white/10">
+            No services are currently listed.
+          </div>
+        ) : null}
       </div>
 
       <div>
